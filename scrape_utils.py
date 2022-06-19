@@ -23,13 +23,13 @@ def scrape_twitter(query=None, user=None, since=str(date.today()-timedelta(days=
     search_str += f"until:{until} " if until else ""
     print(search_str)
     
-    tweets_df = pd.DataFrame(columns=["tweet_id", "date", "user_name", "tweet", "retweets", "likes", "quote_tweets", "replies", "retweeted_tweet", "quoted_tweet", "user_location", "user_created"])
+    tweets_df = pd.DataFrame(columns=["tweet_id", "date", "tweet", "retweets", "likes", "quote_tweets", "replies", "retweeted_tweet", "quoted_tweet",
+                                        "user_name", "user_display_name", "user_description", "user_verified", "user_location", "user_created", "user_followers", "user_following", "user_tweets_count"])
     tweets_df.to_csv(f"tweets_{query if query else user}.csv", index=False)
 
     for tweet in tqdm(sntwitter.TwitterSearchScraper(search_str).get_items()):
         tweet_elem = {"tweet_id": tweet.id,
                       "date":tweet.date,
-                      "user_name": tweet.user.username,
                       "tweet":tweet.content,
                       "retweets": tweet.retweetCount,
                       "likes": tweet.likeCount,
@@ -37,8 +37,15 @@ def scrape_twitter(query=None, user=None, since=str(date.today()-timedelta(days=
                       "replies":tweet.replyCount,
                       "retweeted_tweet":tweet.retweetedTweet,
                       "quoted_tweet":tweet.quotedTweet,
+                      "user_name": tweet.user.username,
+                      "user_display_name": tweet.user.displayname,
+                      "user_description": tweet.user.description,
+                      "user_verified": tweet.user.verified,
                       "user_location":tweet.user.location,
                       "user_created":tweet.user.created,
+                      "user_followers":tweet.user.followersCount,
+                      "user_following":tweet.user.friendsCount,
+                      "user_tweets_count":tweet.user.statusesCount,
                       }
         # append tweet to dataframe of tweets
         tweet_df = tweets_df.append(tweet_elem, ignore_index = True)
@@ -46,31 +53,3 @@ def scrape_twitter(query=None, user=None, since=str(date.today()-timedelta(days=
         tweet_df.to_csv(f"tweets_{query if query else user}.csv", mode="a", index=False, header=False)
     
     return
-
-def scrape_twitter_users(users, filename=""):
-    """
-    Scrape tweets from Twitter.
-    users - list of users to scrape
-    """
-
-    tweets_user_df = pd.DataFrame(columns=["user_id", "user_name", "display_name", "description", "verified", "created", "followers", "following", "tweets", "location"])
-    tweets_user_df.to_csv(f"tweets_{filename}_users.csv", index=False)
-
-    for user in tqdm(users):
-        for tweet in sntwitter.TwitterSearchScraper(f"from:{user}").get_items():
-            user_elem = {
-                "user_id": tweet.user.id,
-                "user_name": tweet.user.username,
-                "display_name": tweet.user.displayname,
-                "description": tweet.user.description,
-                "verified": tweet.user.verified,
-                "created": tweet.user.created,
-                "followers": tweet.user.followersCount,
-                "following": tweet.user.friendsCount,
-                "tweets": tweet.user.statusesCount,
-                "location": tweet.user.location,
-            }
-            break
-        user_df = tweets_user_df.append(user_elem, ignore_index = True)
-        # write to csv
-        user_df.to_csv(f"tweets_{filename}_users.csv", mode="a", index=False, header=False)
