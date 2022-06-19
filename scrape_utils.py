@@ -23,7 +23,7 @@ def scrape_twitter(query=None, user=None, since=str(date.today()-timedelta(days=
     search_str += f"until:{until} " if until else ""
     print(search_str)
     
-    tweets_df = pd.DataFrame(columns=["tweet_id", "date", "user_name", "tweet", "retweets", "likes", "quote_tweets", "replies", "retweeted_tweet", "quoted_tweet"])
+    tweets_df = pd.DataFrame(columns=["tweet_id", "date", "user_name", "tweet", "retweets", "likes", "quote_tweets", "replies", "retweeted_tweet", "quoted_tweet", "user_location", "user_created"])
     tweets_df.to_csv(f"tweets_{query if query else user}.csv", index=False)
 
     for tweet in tqdm(sntwitter.TwitterSearchScraper(search_str).get_items()):
@@ -37,6 +37,8 @@ def scrape_twitter(query=None, user=None, since=str(date.today()-timedelta(days=
                       "replies":tweet.replyCount,
                       "retweeted_tweet":tweet.retweetedTweet,
                       "quoted_tweet":tweet.quotedTweet,
+                      "user_location":tweet.user.location,
+                      "user_created":tweet.user.created,
                       }
         # append tweet to dataframe of tweets
         tweet_df = tweets_df.append(tweet_elem, ignore_index = True)
